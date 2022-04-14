@@ -1,4 +1,5 @@
 import React from 'react'
+import axios from 'axios';
 import TodoList from './TodoList';
 import Form from './Form';
 
@@ -7,72 +8,41 @@ const URL = 'http://localhost:9000/api/todos'
 
 
 export default class App extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      todos: [
-        {
-          name: 'Organize Garage',
-          id: 1528817077286, // could look different, you could use a timestamp to generate it
-          completed: false
-        },
-        {
-          name: 'Bake Cookies',
-          id: 1528817084358,
-          completed: false
-        }
-      ]
-    }
+  state = {
+    todos: [],
   }
 
-  handleAdd = (task) => {
-
-    const newTodo = {
-      name: task,
-      id: Date.now(),
-      completed: false
-    }
-
-    this.setState({
-      ...this.state,
-      todos: [...this.state.todos, newTodo]
+fetchAllTodos = () => {
+  axios.get(URL)
+    .then(res => {
+      this.setState({...this.state, todos: res.data.data})
     })
-  }
-
-  handleToggle = (id) => {
-    this.setState({
-      ...this.state,
-      todos: this.state.todos.map(todo => {
-        if (todo.id === id) {
-          return {
-            ...todo,
-            completed: !todo.completed
-          }
-        }
-      return todo;
-      })
+    .catch(err => {
+      debugger
     })
-  }
+}
 
-  handleClear = () => {
-    this.setState({
-      ...this.state,
-      todos: this.state.todos.filter(todo => {
-        return (todo.completed === false);
-      })
-    });
+  componentDidMount() {
+    this.fetchAllTodos();
   }
 
   render() {
-    const {todos} = this.state;
     return (
       <div>
-        <h1>Hello</h1>
-        
-        <TodoList todos={todos} handleToggle={this.handleToggle} />
-
-        <Form handleAdd={this.handleAdd} />
-        <button onClick={this.handleClear} >Clear</button>
+        <div id='error'>Error: no error here</div>
+        <div id='todos'>
+          <h2>Todos</h2>
+          {this.state.todos.map(todo => {
+            return (
+              <div key={todo.id}>{todo.name}</div>
+            )
+          })}
+        </div>
+        <form id='todoform'>
+          <input type='text' placeholder='type here...' />
+          <input type='submit' />
+          <button>Clear completed</button>
+        </form>
       </div>
     )
   }
