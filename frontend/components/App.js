@@ -10,17 +10,41 @@ const URL = 'http://localhost:9000/api/todos'
 export default class App extends React.Component {
   state = {
     todos: [],
+    error: '',
+    todoNameInput: '',
   }
 
-fetchAllTodos = () => {
-  axios.get(URL)
-    .then(res => {
-      this.setState({...this.state, todos: res.data.data})
-    })
-    .catch(err => {
-      debugger
-    })
-}
+  inputChange = evt => {
+    const {value} = evt.target;
+    this.setState({...this.state, todoNameInput: value})
+  }
+
+  clearForm = () => {
+    this.setState({...this.state, todoNameInput: ''});
+  }
+
+  postNewTodo = () => {
+    axios.post(URL, {name: this.state.todoNameInput})
+      .then(res => {
+        this.fetchAllTodos();
+        this.clearForm();
+      })
+  }
+
+  fetchAllTodos = () => {
+    axios.get(URL)
+      .then(res => {
+        this.setState({...this.state, todos: res.data.data})
+      })
+      .catch(err => {
+        this.setState({...this.state, error: err.response.data.message})
+      })
+  }
+
+  formSubmit = evt => {
+    evt.preventDefault();
+    this.postNewTodo();
+  }
 
   componentDidMount() {
     this.fetchAllTodos();
@@ -29,7 +53,7 @@ fetchAllTodos = () => {
   render() {
     return (
       <div>
-        <div id='error'>Error: no error here</div>
+        <div id='error'>Error: {this.state.error}</div>
         <div id='todos'>
           <h2>Todos</h2>
           {this.state.todos.map(todo => {
@@ -38,8 +62,12 @@ fetchAllTodos = () => {
             )
           })}
         </div>
-        <form id='todoform'>
-          <input type='text' placeholder='type here...' />
+        <form onSubmit={this.formSubmit} id='todoform'>
+          <input 
+            value={this.state.todoNameInput} 
+            onChange={this.inputChange} 
+            type='text' 
+            placeholder='type here...' />
           <input type='submit' />
           <button>Clear completed</button>
         </form>
